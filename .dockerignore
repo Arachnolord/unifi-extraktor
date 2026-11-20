@@ -1,0 +1,12 @@
+node_modules
+.git
+*.zip
+*.unf
+*.unifi
+*.bak
+outputs
+docs
+test
+daten
+.env
+memory.md

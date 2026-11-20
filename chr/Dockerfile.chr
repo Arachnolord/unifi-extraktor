@@ -1,0 +1,13 @@
+# FAH-Extraktor · Urheber: Fabian Hammer
+# Wegwerf-Container der MikroTik-Vorschau: RouterOS CHR unter QEMU/KVM, gesteuert
+# von chr_lauf.py über die serielle Konsole. Kontext ist der Ordner chr/ (wie in manage.sh):
+#   docker build -f chr/Dockerfile.chr -t fah-extraktor-chr chr
+# Das Backend startet je Vorschau einen Container aus diesem Image (Env CHR_IMAGE),
+# hängt das Cache-Volume mit den Rohimages nur lesend nach /cache und legt Auftrag
+# und Kundendatei per Archiv-Upload nach /auftrag (Verzeichnis muss existieren).
+FROM alpine:3.20
+RUN apk add --no-cache qemu-system-x86_64 qemu-img python3 py3-pexpect dosfstools mtools \
+ && mkdir -p /app /auftrag /tmp/fah-chr /cache
+COPY chr_lauf.py /app/chr_lauf.py
+ENV PYTHONUNBUFFERED=1 AUFTRAG=/auftrag/auftrag.json
+CMD ["python3", "/app/chr_lauf.py"]

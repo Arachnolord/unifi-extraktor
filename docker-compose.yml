@@ -1,0 +1,54 @@
+# FAH-Extraktor. Port und Containernamen kommen aus .env (legt manage.sh an): WEB_PORT
+# wählt manage.sh bei der Erstinstallation frei, EXPLORER_NAME braucht man nur, wenn ein
+# zweiter Extraktor auf demselben Host laufen soll. Dienst- und Containernamen heißen aus
+# Kompatibilität weiter "unifi-backup-explorer(-api)" (nginx.conf und manage.sh hängen daran).
+services:
+  unifi-backup-explorer:
+    build: .
+    container_name: ${EXPLORER_NAME:-unifi-backup-explorer}
+    restart: unless-stopped
+    ports:
+      - "${WEB_PORT:-45913}:80"
+    depends_on:
+      - unifi-backup-explorer-api
+
+  # Backend: Anmeldung/Konten/Einstellungen (./daten) und virtuelle Vorschau. Die Vorschau
+  # startet je Konto Wegwerf-Container im abgeschotteten Docker-Netz "unifi-vorschau"
+  # (internal, kein LAN, kein Internet): UniFi = MongoDB + UniFi Network, MikroTik = CHR
+  # unter QEMU/KVM (Image CHR_IMAGE, baut manage.sh aus chr/Dockerfile.chr). Insgesamt
+  # laufen höchstens VORSCHAU_MAX (beide Arten zusammen); der Docker-Socket wird nur für
+  # die eigenen Container mit dem Label fah.unifi-vorschau genutzt.
+  unifi-backup-explorer-api:
+    build:
+      context: .
+      dockerfile: Dockerfile.api
+    container_name: ${EXPLORER_NAME:-unifi-backup-explorer}-api
+    restart: unless-stopped
+    cpu_shares: 512
+    environment:
+      - TZ=Europe/Berlin
+      - DATEN=/data
+      - VORSCHAU_LEERLAUF_MIN=30
+      - VORSCHAU_HOECHSTDAUER_STD=8
+      - VORSCHAU_MAX=6
+      # MikroTik-Vorschau: Image-Tag des QEMU-Containers (gleicher Tag wie in manage.sh),
+      # Pfad des RouterOS-Image-Caches im Backend und Name des Volumes, das die
+      # CHR-Container nur lesend bekommen (muss exakt dem Volume unten entsprechen).
+      - CHR_IMAGE=fah-extraktor-chr
+      - CHR_CACHE=/cache
+      - CHR_CACHE_VOLUME=fah-chr-cache
+    volumes:
+      - ./daten:/data
+      - fah-chr-cache:/cache
+      - /var/run/docker.sock:/var/run/docker.sock
+
+# RouterOS-Image-Cache der MikroTik-Vorschau (chr-<version>.img, ~128 MiB je Version).
+# external: Compose legt es nicht an, sondern manage.sh (docker volume create, idempotent)
+# bzw. das Backend – das Volume gab es auf dem NAS schon ohne Compose-Label, und Compose
+# verweigert sonst den Start ("already exists but was not created by Docker Compose").
+# Bleibt bei "down" erhalten. Leeren: ./manage.sh down && docker volume rm fah-chr-cache
+# && ./manage.sh up
+volumes:
+  fah-chr-cache:
+    name: fah-chr-cache
+    external: true

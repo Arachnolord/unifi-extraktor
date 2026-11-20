@@ -1,0 +1,9 @@
+node_modules
+dist
+*.unf
+*.unifi
+*.zip
+*.bak
+.env
+daten/
+*.backup

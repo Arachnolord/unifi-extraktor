@@ -1,0 +1,14 @@
+FROM node:22-alpine
+WORKDIR /app
+ENV NODE_ENV=production
+COPY package.json package-lock.json ./
+RUN npm ci --omit=dev
+# Browser und Backend teilen sich Parser und Paketbau (src/backup.js, src/vorschau-paket.js,
+# src/mikrotik*.js): das ganze src/ kommt mit, damit kein neues Modul hier nachgetragen werden
+# muss (ERR_MODULE_NOT_FOUND im Container). server/ enthält auch server/arten/ (UniFi, MikroTik).
+COPY src ./src
+COPY server ./server
+EXPOSE 3000
+HEALTHCHECK --interval=30s --timeout=3s --start-period=10s --retries=3 \
+  CMD wget -q -O /dev/null http://127.0.0.1:3000/_explorer/api/gesund || exit 1
+CMD ["node", "server/server.js"]
