@@ -8,6 +8,18 @@ Bis 09.10.2026 hieß die App „UniFi Backup Explorer“. Container-, Netz- und 
 (`unifi-backup-explorer(-api)`, Netz `unifi-vorschau`, Präfix `/_explorer/`, Cookie
 `fah_explorer`) bleiben aus Kompatibilität unverändert.
 
+## Screenshots
+
+*Aufgenommen mit einer erfundenen MikroTik-Beispielkonfiguration (Adressen aus 192.168.x.x, Seriennummer „BEISPIEL0001“) – kein echtes Backup.*
+
+![Backup-Übersicht – Kennzahlen, Hinweise, das Wichtigste auf einen Blick](docs/screenshots/2-backup-uebersicht.png)
+
+| Hersteller wählen | Baumansicht |
+|---|---|
+| ![Übersicht](docs/screenshots/1-uebersicht.png) | ![Baum](docs/screenshots/3-baum.png) |
+| **Suche über das ganze Backup** | |
+| ![Suche](docs/screenshots/4-suche.png) | |
+
 ## Integrationen
 
 Nach der Anmeldung zeigt die Übersicht eine Kachel je Hersteller (A–Z). Angeboten wird nur, was
